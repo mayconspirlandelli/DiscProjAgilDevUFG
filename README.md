@@ -9,6 +9,21 @@ Agente para monitorar palavras trends e analisar desinformaçao em posts de rede
 uv add crewai 
 
 # Instalar tools 
-pip install 'crewai[tools]'
+pip install 'crewai[tools]' ou uv add crewai-tools
 
-# 
+# Instalar Ollama 
+curl -fsSL https://ollama.com/install.sh | sh
+
+#Rodar o serviço
+ollama serve &
+
+# Download do modelo
+ollama pull gemma3:270m
+
+
+#Rodar o exmplo do crewai
+sudo uv run agents-crew/scrapeWeb.py
+
+
+#Instala modelo Small 
+pip install litellm

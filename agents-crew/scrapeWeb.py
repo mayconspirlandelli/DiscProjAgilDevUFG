@@ -1,6 +1,6 @@
-from pydantic import BaseModel
-# from crewai import Agent, Task, Crew, LLM, Process
-# from crewai_tools import ScrapeWebsiteTool
+#from pydantic import BaseModel
+from crewai import Agent, Task, Crew, LLM, Process
+from crewai_tools import ScrapeWebsiteTool
 import os
 from dotenv import load_dotenv
 
