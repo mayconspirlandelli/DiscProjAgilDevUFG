@@ -1,3 +1,3 @@
 {
-  "resultado": "Your final answer must be the great and the most complete as possible, it must be outcome described."
+  "resultado": "{\n    \"curso\": {\n        \"nome\": \"Banco de Dados com Big Data\",\n        \"descricao\": \"O curso destina-se a portadores de diploma nas graduações de Ciências da Computação, Sistemas de Informação, Engenharia de software, Engenharia de Computação e demais profissionais Desenvolvedores de Software, Arquitetos de Software e Especialistas em Processamento de Dados em geral.\",\n        \"carga_horaria\": \"360 horas\",\n        \"modalidade\": \"On-line\",\n        \"informacoes_adicionais\": \"Reconhecido pelo MEC, Qualidade de Ensino UFG, Professores Renomados, Matrícula e pagamento da 1ª parcela. Valor da mensalidade R$ 500,00 (17 parcelas R$ 9.000,00 à vista).\",\n        \"edital_disponivel\": \"Sim\",\n        \"data_inicio\": \"17/05/2025\",\n        \"valor_mensalidade\": \"R$ 500,00/mensal\"\n    }\n}"
 }

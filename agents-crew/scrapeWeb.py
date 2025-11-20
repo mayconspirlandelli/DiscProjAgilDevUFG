@@ -1,4 +1,4 @@
-#from pydantic import BaseModel
+from pydantic import BaseModel
 from crewai import Agent, Task, Crew, LLM, Process
 from crewai_tools import ScrapeWebsiteTool
 import os
@@ -45,7 +45,8 @@ def get_llm(provider: str = "gemini"):
 
     elif provider == "gemma":
         return LLM(
-            model ="ollama/gemma3:270m",
+            #model ="ollama/gemma3:270m",
+            model="ollama/qwen3:1.7b",
             base_url="http://localhost:11434",
             temperature=0.7,
         )
@@ -78,6 +79,7 @@ agente_trends = Agent(
     verbose=True,
     allow_delegation=False,
     max_rpm=1,
+    llm=get_llm("gemma")
 )
 
 # ==============================
@@ -113,7 +115,8 @@ crew = Crew(
 #result = ResearchCrew().crew().kickoff(inputs=inputs)
 resultado = crew.kickoff(inputs={
     "geo": "BR",
-    "hl": "24",
+    "hl": "pt-BR",
+    "hours": "24",
     "category": "14",     
     })
 print("\n========== RESULTADO ==========\n")
