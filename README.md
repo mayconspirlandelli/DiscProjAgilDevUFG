@@ -27,3 +27,6 @@ sudo uv run agents-crew/scrapeWeb.py
 
 #Instala modelo Small 
 pip install litellm
+
+# Para instalar o Modelo do Hugginface 
+pip install -U transformers

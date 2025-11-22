@@ -12,4 +12,5 @@ dependencies = [
     "google-generativeai>=0.8.5",
     "litellm>=1.80.0",
     "playwright>=1.55.0",
+    "transformers>=4.57.1",
 ]
