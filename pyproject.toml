@@ -10,7 +10,10 @@ dependencies = [
     "crewai-tools>=1.5.0",
     "dotenv>=0.9.9",
     "google-generativeai>=0.8.5",
+    "instaloader>=4.15",
     "litellm>=1.80.0",
     "playwright>=1.55.0",
+    "selenium>=4.38.0",
     "transformers>=4.57.1",
+    "webdriver-manager>=4.0.2",
 ]
