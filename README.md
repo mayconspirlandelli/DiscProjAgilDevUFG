@@ -30,3 +30,10 @@ pip install litellm
 
 # Para instalar o Modelo do Hugginface 
 pip install -U transformers
+
+#Para usar Browser-Use
+uv add browser-use
+uv sync
+
+# Install Chromium browser: 
+uvx browser-use install
