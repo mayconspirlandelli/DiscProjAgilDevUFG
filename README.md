@@ -37,3 +37,5 @@ uv sync
 
 # Install Chromium browser: 
 uvx browser-use install
+
+# Necessario instalar o playwright install chromium

@@ -21,19 +21,25 @@ async def main():
     #     profile_directory="Default", )   
 
     browser = Browser(
-        window_size={"width": 1000, "height": 700},  # Set window size
+        window_size={"width": 500, "height": 700},  # Set window size
         #browser_type="chromium", 
         headless=False)
     
-    #llm = ChatGoogle(model="gemini-2.5-flash", api_key=api_key)
+    llm = ChatGoogle(model="google/gemini-2.5-flash", 
+                     api_key=os.getenv("GOOGLE_API_KEY"))
 
-    llm = ChatGroq(model="meta-llama/llama-4-maverick-17b-128e-instruct", 
-                   api_key=os.getenv("GROQ_API_KEY"))
+   # llm = ChatGroq(model="meta-llama/llama-4-maverick-17b-128e-instruct", 
+   #                api_key=os.getenv("GROQ_API_KEY"))
+    
 
     agent = Agent(     
-        task="Pesquista no yahoo.com.br os top 5 assuntos mais pesquisados no Brasil e me retorna em uma lista.",  
+        #task="Pesquise no yahoo.com.br os top 5 assuntos mais pesquisados no Brasil e me retorna em uma lista.",  
+        #task="Pesquise no X.com os 5 assuntos do momento no Brasil e me retorna em uma lista.",
+        #task="Pesquise no ifood.com.br, 5 lojas de doces no endereco Rua Pedroso Alvarenga, 1192 – Itaim Bibi, São Paulo – SP ",
+        task="Liste 5 trends no site https://trends.google.com.br/trending?geo=BR&hl=pt-BR&category=14&hours=168", 
         llm=llm,
-        #browser=browser,
+
+        browser=browser,
         #api_key=api_key,
     )
     await agent.run()
