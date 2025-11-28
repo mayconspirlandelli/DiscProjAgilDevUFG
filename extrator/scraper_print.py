@@ -7,9 +7,92 @@ Instalação:
     playwright install chromium
 """
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, Page
 import os
 import time
+
+
+def fechar_popups(page: Page, tempo_espera: int = 2) -> bool:
+    """
+    Tenta identificar e fechar popups comuns na página.
+    
+    Args:
+        page (Page): Objeto da página do Playwright
+        tempo_espera (int): Tempo em segundos para aguardar após fechar popups (padrão: 2)
+    
+    Returns:
+        bool: True se algum popup foi fechado, False caso contrário
+    """
+    popup_fechado = False
+    
+    # Lista de seletores comuns para botões de fechar popup
+    seletores_fechar = [
+        # Botões de fechar genéricos
+        'button[aria-label*="close" i]',
+        'button[aria-label*="fechar" i]',
+        'button[title*="close" i]',
+        'button[title*="fechar" i]',
+        '[class*="close" i]',
+        '[class*="dismiss" i]',
+        '[id*="close" i]',
+        
+        # Ícones de X
+        'button:has-text("×")',
+        'button:has-text("✕")',
+        'a:has-text("×")',
+        
+        # Botões específicos de redes sociais
+        'button[aria-label="Close"]',
+        'div[role="button"][aria-label="Close"]',
+        
+        # Instagram específico
+        'svg[aria-label="Close"]',
+        'button:has(svg[aria-label="Close"])',
+        
+        # LinkedIn específico
+        '.msg-overlay-bubble-header__control--close',
+        'button[data-test-modal-close-btn]',
+        
+        # Botões de "Não aceitar" cookies
+        'button:has-text("Reject")',
+        'button:has-text("Decline")',
+        'button:has-text("Rejeitar")',
+        'button:has-text("Recusar")',
+    ]
+    
+    print("Verificando popups...")
+    
+    for seletor in seletores_fechar:
+        try:
+            # Verifica se o elemento existe e está visível
+            if page.locator(seletor).first.is_visible(timeout=1000):
+                print(f"  ✓ Popup encontrado: {seletor}")
+                page.locator(seletor).first.click()
+                popup_fechado = True
+                print(f"  ✓ Popup fechado!")
+                time.sleep(0.5)  # Pequena pausa após fechar
+                break
+        except:
+            # Continua tentando outros seletores
+            continue
+    
+    # Verifica por overlays/modals e tenta pressionar ESC
+    try:
+        if page.locator('[role="dialog"]').first.is_visible(timeout=1000):
+            print("  ✓ Modal detectado, pressionando ESC...")
+            page.keyboard.press('Escape')
+            popup_fechado = True
+            time.sleep(0.5)
+    except:
+        pass
+    
+    if popup_fechado:
+        print(f"Aguardando {tempo_espera} segundos após fechar popup...")
+        time.sleep(tempo_espera)
+    else:
+        print("  Nenhum popup detectado")
+    
+    return popup_fechado
 
 
 def capturar_screenshot(
@@ -18,7 +101,8 @@ def capturar_screenshot(
     tempo_espera: int = 3,
     largura: int = 1920,
     altura: int = 1080,
-    pagina_completa: bool = False
+    pagina_completa: bool = False,
+    fechar_popup: bool = True
 ) -> bool:
     """
     Navega até uma URL e captura um screenshot da página usando Playwright.
@@ -30,6 +114,7 @@ def capturar_screenshot(
         largura (int): Largura da janela do navegador em pixels (padrão: 1920)
         altura (int): Altura da janela do navegador em pixels (padrão: 1080)
         pagina_completa (bool): Se True, captura a página inteira com scroll (padrão: False)
+        fechar_popup (bool): Se True, tenta detectar e fechar popups automaticamente (padrão: True)
     
     Returns:
         bool: True se o screenshot foi capturado com sucesso, False caso contrário
@@ -53,6 +138,10 @@ def capturar_screenshot(
             # Navega para a URL
             print(f"Navegando para: {url}")
             page.goto(url, wait_until="networkidle")
+            
+            # Tenta fechar popups se habilitado
+            if fechar_popup:
+                fechar_popups(page, tempo_espera=1)
             
             # Aguarda o tempo adicional especificado
             if tempo_espera > 0:
@@ -115,10 +204,11 @@ if __name__ == "__main__":
     # Exemplo 1: Capturar uma única URL
     ##url = "https://www.example.com"
     
-    #url = "https://www.instagram.com/p/DKHZC2qNEbO/"
-    url = "https://www.instagram.com/p/DRaYqKWjwTm"
+    url = "https://www.instagram.com/p/DKHZC2qNEbO/"
+    #url = "https://www.instagram.com/p/DRaYqKWjwTm"
+    #url = "https://www.linkedin.com/posts/elisa-terumi-rubel-schneider_google-colab-dentro-do-vs-code-o-google-activity-7400117889040678912-W9zY?utm_source=share&utm_medium=member_desktop&rcm=ACoAAAS2RwkBTxVnriY6_cELObq4OH4SM9JAILQ"
 
-    capturar_screenshot(url, "exemplo.png", tempo_espera=2)
+    capturar_screenshot(url, "exemplo4.png", tempo_espera=5, pagina_completa=False)
     
     # Exemplo 2: Capturar página completa (com scroll)
     # capturar_screenshot(url, "exemplo_completo.png", pagina_completa=True)
