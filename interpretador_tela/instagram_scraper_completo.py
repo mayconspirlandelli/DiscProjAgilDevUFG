@@ -1,26 +1,29 @@
-"""
-Sistema Completo de Scraping e Análise do Instagram
+""" 
+Sistema Completo de Scraping e Análise do Instagram com OCR
 1. Recebe URL do Instagram
 2. Captura screenshot da página
-3. Analisa a imagem com Ollama/Qwen
-4. Extrai informações estruturadas
-5. Exporta para JSON
+3. Extrai texto usando OCR (Tesseract)
+4. Estrutura informações em JSON
+5. Exporta resultados
 
 Instalação:
-    pip install playwright ollama pillow
+    pip install playwright pillow pytesseract
     playwright install chromium
-    ollama pull qwen3-vl:2b
+    
+    # Instalar Tesseract no sistema:
+    # macOS: brew install tesseract tesseract-lang
+    # Linux: sudo apt-get install tesseract-ocr tesseract-ocr-por
+    # Windows: baixe de https://github.com/UB-Mannheim/tesseract/wiki
 """
 
 from playwright.sync_api import sync_playwright, Page
-import ollama
 from PIL import Image
+import pytesseract
 import json
 import os
+import re
 import time
 from datetime import datetime
-
-
 def fechar_popups(page: Page, tempo_espera: int = 2) -> bool:
     """
     Tenta identificar e fechar popups comuns na página.
@@ -115,19 +118,20 @@ def capturar_screenshot_instagram(url: str, nome_arquivo: str = None) -> str:
         return ""
 
 
-def analisar_imagem_instagram(caminho_imagem: str, modelo: str = "gemma3:4b") -> dict:
+def extrair_texto_ocr(caminho_imagem: str, idioma: str = 'por+eng') -> dict:
     """
-    Analisa o screenshot do Instagram usando Ollama.
+    Extrai texto de uma imagem usando OCR (Tesseract).
     
     Args:
         caminho_imagem (str): Caminho para o arquivo de imagem
-        modelo (str): Nome do modelo Ollama a usar
+        idioma (str): Idioma(s) para OCR (padrão: 'por+eng' para português e inglês)
+                     Opções: 'por', 'eng', 'por+eng', etc.
     
     Returns:
-        dict: Dicionário com as informações extraídas
+        dict: Dicionário com texto extraído e informações estruturadas
     """
     
-    print(f"\n📸 Analisando imagem: {caminho_imagem}")
+    print(f"\n📸 Extraindo texto da imagem: {caminho_imagem}")
     
     if not os.path.exists(caminho_imagem):
         print(f"✗ Erro: Arquivo não encontrado!")
@@ -141,95 +145,149 @@ def analisar_imagem_instagram(caminho_imagem: str, modelo: str = "gemma3:4b") ->
         print(f"✗ Erro ao abrir imagem: {e}")
         return {}
     
-    print(f"🤖 Usando modelo Ollama: {modelo}")
+    print(f"🔍 Processando com Tesseract OCR (idioma: {idioma})...")
     
     try:
-        # Prompt estruturado para extrair informações do Instagram
-        prompt = """Analise este screenshot do Instagram e extraia TODAS as informações visíveis em formato JSON:
-
-{
-  "rede_social": "Instagram",
-  "usuario": "nome do usuário/conta",
-  "nome_perfil": "nome completo se visível",
-  "curtidas": "número de curtidas (apenas números)",
-  "comentarios": "número de comentários",
-  "compartilhamentos": "número de compartilhamentos se visível",
-  "salvamentos": "número de salvamentos se visível",
-  "legenda": "texto completo da legenda do post",
-  "hashtags": ["lista", "de", "hashtags"],
-  "mencoes": ["@usuarios", "mencionados"],
-  "localizacao": "localização marcada",
-  "data_post": "data/horário do post",
-  "tipo_conteudo": "foto/vídeo/carrossel/reels",
-  "descricao_visual": "descrição MUITO detalhada da imagem: pessoas, objetos, cores, ambiente, expressões, textos visíveis na imagem, logos, marcas, etc.",
-  "transcricao_textos": "TODOS os textos visíveis na imagem (não apenas a legenda)",
-  "outros_detalhes": "qualquer outra informação relevante"
-}
-
-IMPORTANTE: 
-- Transcreva TODO o texto visível no screenshot
-- Seja extremamente detalhado na descrição visual
-- Extraia TODOS os números (curtidas, comentários, etc)
-- Liste TODAS as hashtags e menções
-- Se algo não estiver visível, use "não visível"
-
-Responda APENAS com o JSON válido, sem texto adicional."""
+        # Configura o Tesseract para português e inglês
+        config_tesseract = f'--oem 3 --psm 6'
         
-        print("\n🔍 Processando imagem com IA...")
+        # Extrai texto da imagem
+        print("📖 Extraindo texto...")
+        texto_completo = pytesseract.image_to_string(img, lang=idioma, config=config_tesseract)
         
-        # Gera a análise usando Ollama
-        response = ollama.chat(
-            model=modelo,
-            messages=[{
-                'role': 'user',
-                'content': prompt,
-                'images': [caminho_imagem]
-            }]
-        )
+        # Extrai dados detalhados (com posições)
+        print("📍 Extraindo posições do texto...")
+        dados_detalhados = pytesseract.image_to_data(img, lang=idioma, config=config_tesseract, output_type=pytesseract.Output.DICT)
         
-        resposta_texto = response['message']['content']
-        print("✓ Análise concluída!")
+        # Organiza os textos extraídos
+        textos_completos = []
+        textos_por_posicao = []
         
-        # Parse do JSON
-        try:
-            # Remove marcadores de código
-            resposta_limpa = resposta_texto.strip()
-            if resposta_limpa.startswith("```json"):
-                resposta_limpa = resposta_limpa[7:]
-            if resposta_limpa.startswith("```"):
-                resposta_limpa = resposta_limpa[3:]
-            if resposta_limpa.endswith("```"):
-                resposta_limpa = resposta_limpa[:-3]
-            
-            resposta_limpa = resposta_limpa.strip()
-            
-            # Parse do JSON
-            dados = json.loads(resposta_limpa)
-            
-            # Adiciona metadados
-            dados["arquivo_screenshot"] = caminho_imagem
-            dados["timestamp_analise"] = datetime.now().isoformat()
-            dados["modelo_usado"] = modelo
-            
-            return dados
-            
-        except json.JSONDecodeError as e:
-            print(f"⚠️  Aviso: Resposta não está em formato JSON válido")
-            print(f"Tentando salvar resposta bruta...")
-            
-            return {
-                "arquivo_screenshot": caminho_imagem,
-                "timestamp_analise": datetime.now().isoformat(),
-                "modelo_usado": modelo,
-                "resposta_bruta": resposta_texto,
-                "erro": "Falha ao parsear JSON"
-            }
+        n_boxes = len(dados_detalhados['text'])
+        for i in range(n_boxes):
+            texto = dados_detalhados['text'][i].strip()
+            if texto:  # Ignora textos vazios
+                confianca = int(dados_detalhados['conf'][i])
+                if confianca > 0:  # Ignora textos com confiança inválida
+                    textos_completos.append(texto)
+                    textos_por_posicao.append({
+                        "texto": texto,
+                        "confianca": round(confianca / 100, 2),  # Normaliza para 0-1
+                        "posicao": {
+                            "x": dados_detalhados['left'][i],
+                            "y": dados_detalhados['top'][i],
+                            "largura": dados_detalhados['width'][i],
+                            "altura": dados_detalhados['height'][i]
+                        }
+                    })
+        
+        # Limpa o texto completo
+        texto_completo = texto_completo.strip()
+        
+        print(f"✓ OCR concluído! {len(textos_completos)} palavras/blocos encontrados")
+        
+        # Tenta extrair informações específicas do Instagram
+        dados = extrair_informacoes_instagram(texto_completo, textos_completos)
+        
+        # Adiciona dados do OCR
+        dados["ocr_texto_completo"] = texto_completo
+        dados["ocr_textos_individuais"] = textos_completos
+        dados["ocr_detalhes"] = textos_por_posicao
+        dados["ocr_total_blocos"] = len(textos_completos)
+        dados["arquivo_screenshot"] = caminho_imagem
+        dados["timestamp_analise"] = datetime.now().isoformat()
+        dados["metodo_extracao"] = "Tesseract OCR"
+        dados["idioma_ocr"] = idioma
+        
+        return dados
         
     except Exception as e:
-        print(f"✗ Erro ao processar imagem: {e}")
+        print(f"✗ Erro ao processar OCR: {e}")
+        print("\nDica: Certifique-se de que o Tesseract está instalado:")
+        print("  macOS: brew install tesseract tesseract-lang")
+        print("  Linux: sudo apt-get install tesseract-ocr tesseract-ocr-por")
         import traceback
         traceback.print_exc()
         return {}
+
+
+def extrair_informacoes_instagram(texto_completo: str, textos_lista: list) -> dict:
+    """
+    Extrai informações específicas do Instagram a partir do texto OCR.
+    
+    Args:
+        texto_completo (str): Texto completo extraído
+        textos_lista (list): Lista de textos individuais
+    
+    Returns:
+        dict: Informações estruturadas do Instagram
+    """
+    
+    dados = {
+        "rede_social": "Instagram",
+        "usuario": "não detectado",
+        "curtidas": "não detectado",
+        "comentarios": "não detectado",
+        "legenda": "não detectado",
+        "hashtags": [],
+        "mencoes": [],
+        "data_post": "não detectado",
+        "localizacao": "não detectado"
+    }
+    
+    # Extrai hashtags
+    hashtags = re.findall(r'#\w+', texto_completo)
+    if hashtags:
+        dados["hashtags"] = list(set(hashtags))
+    
+    # Extrai menções
+    mencoes = re.findall(r'@\w+', texto_completo)
+    if mencoes:
+        dados["mencoes"] = list(set(mencoes))
+    
+    # Tenta identificar números de curtidas
+    # Padrões: "1.234 curtidas", "1,234 likes", "1234 curtidas"
+    match_curtidas = re.search(r'([\d.,]+)\s*(curtidas?|likes?|gostei)', texto_completo, re.IGNORECASE)
+    if match_curtidas:
+        dados["curtidas"] = match_curtidas.group(1).replace('.', '').replace(',', '')
+    
+    # Tenta identificar número de comentários
+    match_comentarios = re.search(r'([\d.,]+)\s*(comentários?|comments?)', texto_completo, re.IGNORECASE)
+    if match_comentarios:
+        dados["comentarios"] = match_comentarios.group(1).replace('.', '').replace(',', '')
+    
+    # Tenta identificar usuário (geralmente aparece no início)
+    # Procura por @ seguido de nome ou nome no início
+    for texto in textos_lista[:5]:  # Verifica os primeiros textos
+        if texto.startswith('@'):
+            dados["usuario"] = texto
+            break
+        # Verifica se é um nome de usuário (sem espaços, letras e números)
+        if re.match(r'^[a-zA-Z0-9_\.]+$', texto) and len(texto) > 2:
+            dados["usuario"] = texto
+            break
+    
+    # Tenta identificar data (padrões: "há 2 dias", "2d", "1 semana")
+    match_data = re.search(r'(há\s+\d+\s+\w+|\d+[dhms]|há\s+uma?\s+\w+)', texto_completo, re.IGNORECASE)
+    if match_data:
+        dados["data_post"] = match_data.group(0)
+    
+    # A legenda geralmente é o texto mais longo após o usuário
+    textos_ordenados = sorted(textos_lista, key=len, reverse=True)
+    if textos_ordenados:
+        # Pega o texto mais longo que não seja hashtag ou menção
+        for texto in textos_ordenados:
+            if len(texto) > 20 and not texto.startswith('#') and not texto.startswith('@'):
+                dados["legenda"] = texto
+                break
+    
+    # Tenta identificar localização
+    for texto in textos_lista:
+        if any(palavra in texto.lower() for palavra in ['📍', 'em ', 'at ', 'local']):
+            dados["localizacao"] = texto
+            break
+    
+    return dados
 
 
 def salvar_json(dados: dict, arquivo_saida: str = None) -> str:
@@ -256,7 +314,7 @@ def salvar_json(dados: dict, arquivo_saida: str = None) -> str:
 
 def processar_url_instagram(url: str, salvar_screenshot: bool = True, arquivo_json: str = None) -> dict:
     """
-    Processo completo: captura screenshot e analisa.
+    Processo completo: captura screenshot e extrai texto com OCR.
     
     Args:
         url (str): URL do post do Instagram
@@ -268,7 +326,7 @@ def processar_url_instagram(url: str, salvar_screenshot: bool = True, arquivo_js
     """
     
     print("="*60)
-    print("INSTAGRAM SCRAPER & ANALYZER")
+    print("INSTAGRAM SCRAPER & OCR ANALYZER")
     print("="*60)
     
     # 1. Captura screenshot
@@ -278,11 +336,11 @@ def processar_url_instagram(url: str, salvar_screenshot: bool = True, arquivo_js
         print("✗ Falha ao capturar screenshot")
         return {}
     
-    # 2. Analisa a imagem
-    dados = analisar_imagem_instagram(screenshot)
+    # 2. Extrai texto com OCR
+    dados = extrair_texto_ocr(screenshot)
     
     if not dados:
-        print("✗ Falha ao analisar imagem")
+        print("✗ Falha ao extrair texto")
         return {}
     
     # 3. Adiciona URL original aos dados
@@ -308,6 +366,7 @@ def processar_url_instagram(url: str, salvar_screenshot: bool = True, arquivo_js
     print(f"❤️  Curtidas: {dados.get('curtidas', 'N/A')}")
     print(f"💬 Comentários: {dados.get('comentarios', 'N/A')}")
     print(f"📝 Legenda: {str(dados.get('legenda', 'N/A'))[:100]}...")
+    print(f"🔤 Blocos de texto: {dados.get('ocr_total_blocos', 0)}")
     print(f"📸 Screenshot: {screenshot}")
     print(f"📄 JSON: {arquivo_salvo}")
     print("="*60)
@@ -356,7 +415,7 @@ def processar_multiplas_urls(urls: list, arquivo_json: str = "instagram_multiplo
 # Exemplo de uso
 if __name__ == "__main__":
     # URL do post do Instagram para processar
-    url_instagram = "https://www.instagram.com/p/DCiaBn_t46t/"
+    url_instagram = "https://www.instagram.com/p/DRnS7SFiGzh/"
     
     # Processa uma única URL
     resultado = processar_url_instagram(
