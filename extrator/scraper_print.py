@@ -204,11 +204,12 @@ if __name__ == "__main__":
     # Exemplo 1: Capturar uma única URL
     ##url = "https://www.example.com"
     
-    url = "https://www.instagram.com/p/DKHZC2qNEbO/"
+    url = "https://www.instagram.com/p/DRnS7SFiGzh/"
+    #url = "https://www.instagram.com/p/DKHZC2qNEb
     #url = "https://www.instagram.com/p/DRaYqKWjwTm"
     #url = "https://www.linkedin.com/posts/elisa-terumi-rubel-schneider_google-colab-dentro-do-vs-code-o-google-activity-7400117889040678912-W9zY?utm_source=share&utm_medium=member_desktop&rcm=ACoAAAS2RwkBTxVnriY6_cELObq4OH4SM9JAILQ"
 
-    capturar_screenshot(url, "exemplo4.png", tempo_espera=5, pagina_completa=False)
+    capturar_screenshot(url, "exemplo5.png", tempo_espera=5, pagina_completa=False)
     
     # Exemplo 2: Capturar página completa (com scroll)
     # capturar_screenshot(url, "exemplo_completo.png", pagina_completa=True)

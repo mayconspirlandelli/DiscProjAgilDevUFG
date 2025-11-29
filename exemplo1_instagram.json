@@ -1,6 +1,19 @@
 {
+  "rede_social": "Instagram",
+  "usuario": "instagram",
+  "curtidas": "1.497",
+  "legenda": "Incrível para a vida! 🤩",
+  "descricao_imagem": "Mulher sorrindo, usando óculos de sol, em frente a um lago com montanhas ao fundo. O céu é azul claro e há uma nuvem.",
+  "comentarios": "Não visível",
+  "data_post": "Não visível",
+  "hashtags": [
+    "vida",
+    "natureza",
+    "paisagem",
+    "lago"
+  ],
+  "localizacao": "Não visível",
+  "outros_detalhes": "A mulher está em um ambiente de natureza com montanhas e um lago. Ela usa óculos de sol e sorri. A imagem é colorida, com tons de azul, verde e branco.",
   "arquivo_original": "exemplo1.png",
-  "timestamp_analise": "2025-11-28T19:41:05.984705",
-  "resposta_bruta": "",
-  "erro": "Falha ao parsear JSON"
+  "timestamp_analise": "2025-11-28T20:54:52.929683"
 }

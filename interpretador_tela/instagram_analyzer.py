@@ -25,6 +25,8 @@ def analisar_instagram(caminho_imagem: str, modelo: str = "qwen3-vl:2b") -> dict
     Returns:
         dict: Dicionário com as informações extraídas
     """
+
+    modelo = "gemma3:4b"
     
     print(f"Verificando imagem: {caminho_imagem}")
     
@@ -51,7 +53,7 @@ def analisar_instagram(caminho_imagem: str, modelo: str = "qwen3-vl:2b") -> dict
     
     try:
         # Prompt estruturado para extrair informações do Instagram
-        prompt = """Analise este screenshot de uma rede social e extraia as seguintes informações em formato JSON:
+        prompt = """Analise este screenshot de uma rede social e extraia as seguintes informações :
 
 {
   "rede_social": "nome da rede social (Instagram, Facebook, etc)",
@@ -60,7 +62,10 @@ def analisar_instagram(caminho_imagem: str, modelo: str = "qwen3-vl:2b") -> dict
   "legenda": "texto da legenda do post",
   "descricao_imagem": "descrição detalhada do conteúdo visual da imagem do post",
   "comentarios": "número de comentários se visível",
-  "data_post": "data do post se visível"
+  "data_post": "data do post se visível",
+  "hashtags": "lista de hashtags usadas no post",
+  "localizacao": "localização do post se visível",
+  "outros_detalhes": "quaisquer outros detalhes relevantes extraídos do screenshot, faca uma descrição detalhada do conteúdo visual e textual do post. Transcreve se houver textos visíveis na imagem. Descreve as pessoas, objetos, cores predominantes, expressões faciais, ambiente e qualquer outro elemento visual importante."
 }
 
 Responda APENAS com o JSON, sem texto adicional."""
@@ -197,7 +202,7 @@ def analisar_multiplas_imagens(caminhos_imagens: list, arquivo_saida: str = "ins
 # Exemplo de uso
 if __name__ == "__main__":
     # Arquivo de imagem para analisar
-    caminho_imagem = "exemplo4.png"
+    caminho_imagem = "exemplo5.png"
     
     # Se não existir, tenta usar uma das imagens de exemplo
     if not os.path.exists(caminho_imagem):
