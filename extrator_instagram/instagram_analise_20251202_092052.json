@@ -1,0 +1,20 @@
+{
+  "rede_social": "Instagram",
+  "usuario": "comprova",
+  "legenda": "🕵️ Não é verdade que o projeto de lei Antifacção elaborado pelo governo reduza as penas para membros de facções criminosas.\n\n➡️ Posts desinformam ao afirmar que o texto reduziria a pena de 3 anos para 1 ano e 8 meses.\n\n👩🏽‍💻 Com @gzhdigital e @folhadespaulo\n\n🔎 Confira links e mais detalhes no site.\n\n📲 Você também pode sugerir conteúdos pelo WhatsApp (links na bio)\nNo comments yet.",
+  "curtidas": "40",
+  "comentarios": "0",
+  "data_post": "14 de nov",
+  "hashtags": [],
+  "mencoes": [
+    "@gzhdigital",
+    "@folhadespaulo"
+  ],
+  "localizacao": "não disponível",
+  "descricao_conteudo": "Desinformação sobre o projeto de lei Antifacção.",
+  "timestamp_processamento": "2025-12-02T09:20:52.955015",
+  "modelo_usado": "gemma3:4b",
+  "metodo_extracao": "Captura de texto + Gemma3:2b",
+  "url_original": "https://www.instagram.com/p/DRDReOkiLJM",
+  "tamanho_texto_capturado": 1186
+}

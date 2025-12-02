@@ -13,6 +13,7 @@ dependencies = [
     "instaloader>=4.15",
     "litellm>=1.80.0",
     "playwright>=1.55.0",
+    "pyperclip>=1.11.0",
     "pytesseract>=0.3.13",
     "selenium>=4.38.0",
     "transformers>=4.57.1",

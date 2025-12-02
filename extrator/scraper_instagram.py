@@ -1,5 +1,5 @@
 
-# Esse codigo funcionou.
+# Esse codigo funcionou, porém o Instagram bloqueia o acesso via web scraping depois de duas extrações seguidas.
 
 import instaloader
 from urllib.parse import urlparse
